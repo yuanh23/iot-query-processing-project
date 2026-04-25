@@ -1,6 +1,6 @@
 from sensor_simulator import simulate_data
-from optimized_query import build_latest_cache
-from experiment import compare_query_times
+from optimized_query import build_latest_cache, build_partitioned_index
+from experiment import compare_latest_query_times, compare_range_query_times
 
 
 def main():
@@ -12,17 +12,33 @@ def main():
     print(f"Total readings generated: {len(data)}")
 
     latest_cache = build_latest_cache(data)
+    data_by_sensor = build_partitioned_index(data)
 
     target_sensor = "S1"
-    result = compare_query_times(target_sensor, data, latest_cache)
 
-    print("\nBaseline result:")
-    print(result["baseline_result"])
-    print(f"Baseline time: {result['baseline_time']:.10f} seconds")
+    print("\n--- Latest Reading Query ---")
+    latest_result = compare_latest_query_times(target_sensor, data, latest_cache)
 
-    print("\nOptimized result:")
-    print(result["optimized_result"])
-    print(f"Optimized time: {result['optimized_time']:.10f} seconds")
+    print(f"Baseline time: {latest_result['baseline_time']:.10f} seconds")
+    print(f"Optimized time: {latest_result['optimized_time']:.10f} seconds")
+
+    sensor_readings = data_by_sensor[target_sensor]
+    start_time = sensor_readings[200]["timestamp"]
+    end_time = sensor_readings[800]["timestamp"]
+
+    print("\n--- Time-Range Query ---")
+    range_result = compare_range_query_times(
+        target_sensor,
+        start_time,
+        end_time,
+        data,
+        data_by_sensor
+    )
+
+    print(f"Baseline results found: {range_result['baseline_result_count']}")
+    print(f"Optimized results found: {range_result['optimized_result_count']}")
+    print(f"Baseline time: {range_result['baseline_time']:.10f} seconds")
+    print(f"Optimized time: {range_result['optimized_time']:.10f} seconds")
 
 
 if __name__ == "__main__":
