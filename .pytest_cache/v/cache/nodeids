@@ -1,0 +1,4 @@
+[
+  "test_queries.py::test_latest_query_correctness",
+  "test_queries.py::test_range_query_correctness"
+]
